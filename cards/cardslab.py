@@ -25,6 +25,8 @@ try:
     vm.run(['/ip hotspot user add name="ownuser3" password="mine" comment="customer"'])
     # A customer's own hotspot server profile with its own ways to sign in: MAC cards must add «mac-cookie» and keep them.
     vm.run(['/ip hotspot profile add name="custprof" login-by=http-chap,cookie'])
+    # and one with no way to sign in at all: it must stay empty (mac-cookie alone would lock the others out)
+    vm.run(['/ip hotspot profile add name="emptyprof" login-by=""'])
     res['login_by_before'] = vm.ros('/ip hotspot profile print detail without-paging')
     for n in ('c1', 'c2', 'c3'):
         before = len(got()); t = time.time()
