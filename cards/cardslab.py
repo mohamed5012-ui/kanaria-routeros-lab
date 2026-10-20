@@ -23,6 +23,9 @@ try:
     vm.run([':delay 2s', '/certificate import file-name=ca.crt passphrase=""', '/certificate set [find] trusted=yes'])
     # The customer's own hotspot user with the same name as card 3: it must stay as it is.
     vm.run(['/ip hotspot user add name="ownuser3" password="mine" comment="customer"'])
+    # A customer's own hotspot server profile with its own ways to sign in: MAC cards must add «mac-cookie» and keep them.
+    vm.run(['/ip hotspot profile add name="custprof" login-by=http-chap,cookie'])
+    res['login_by_before'] = vm.ros('/ip hotspot profile print detail without-paging')
     for n in ('c1', 'c2', 'c3'):
         before = len(got()); t = time.time()
         o = vm.ros(f'/import file-name={n}.rsc', 600); sec = round(time.time() - t, 1)
@@ -36,6 +39,9 @@ try:
                 'own_user': vm.ros('/ip hotspot user print detail without-paging where name="ownuser3"'),
                 'profile': vm.ros('/ip hotspot user profile print detail without-paging where name="Kanary_P7"'),
                 'one_card': vm.ros('/ip hotspot user print detail without-paging where comment="Kanary_C" and limit-bytes-total>0'),
+                'profile_mac': vm.ros('/ip hotspot user profile print detail without-paging where name="Kanary_P7M"'),
+                'mac_cards': vm.ros(':put [:len [/ip hotspot user find where comment="Kanary_C" and profile="Kanary_P7M"]]'),
+                'login_by': vm.ros('/ip hotspot profile print detail without-paging'),
             }
             note('after c1: ' + json.dumps({k: ' '.join(v.split())[:300] for k, v in res['after_c1'].items()}, ensure_ascii=False))
         if n == 'c2':
@@ -52,5 +58,5 @@ finally:
     for k in ('c1', 'c2', 'c3'):
         if k in res: print(f'::notice title={label} {k}::{res[k]["seconds"]} s, pieces {len(res[k]["pieces"])}, import tail: {" ".join(res[k]["import"].split())[-160:]}', flush=True)
     for k in ('after_c1', 'after_c2', 'after_c3'):
-        if k in res: print(f'::notice title={label} {k}::' + json.dumps({a: " ".join(b.split())[:400] for a, b in res[k].items()}, ensure_ascii=False)[:1500], flush=True)
+        if k in res: print(f'::notice title={label} {k}::' + json.dumps({a: " ".join(b.split())[:700] for a, b in res[k].items()}, ensure_ascii=False)[:1500], flush=True)
     vm.stop()
