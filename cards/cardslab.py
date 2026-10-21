@@ -42,6 +42,8 @@ try:
                 'profile': vm.ros('/ip hotspot user profile print detail without-paging where name="Kanary_P7"'),
                 'one_card': vm.ros('/ip hotspot user print detail without-paging where comment="Kanary_C" and limit-bytes-total>0'),
                 'profile_mac': vm.ros('/ip hotspot user profile print detail without-paging where name="Kanary_P7M"'),
+                'profile_mac30': vm.ros('/ip hotspot user profile print detail without-paging where name="Kanary_P9M"'),
+                'card_p9': vm.ros('/ip hotspot user print detail without-paging where comment="Kanary_C" and profile="Kanary_P9M"'),
                 'mac_cards': vm.ros(':put [:len [/ip hotspot user find where comment="Kanary_C" and profile="Kanary_P7M"]]'),
                 'login_by': vm.ros('/ip hotspot profile print detail without-paging'),
             }
