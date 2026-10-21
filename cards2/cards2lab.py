@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ['LAB_OUT'] = sys.argv[3]
 from labvm import VM, note
 img, label, out = sys.argv[1:4]
-LOG = os.path.join(out, 'recv.log')
+LOG = os.environ.get('LAB_RECV') or os.path.join(out, 'recv.log')
 def got(): return [json.loads(l) for l in open(LOG)] if os.path.exists(LOG) else []
 here = os.path.dirname(os.path.abspath(__file__))
 vm = VM('r', img, 2222, 5555)
