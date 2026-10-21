@@ -2,7 +2,7 @@ name: cards-lab
 on:
   push:
     branches: [main]
-    paths: ['cards/**', 'cards2/**', '.github/workflows/cards-lab.yml']
+    paths: ['cards/**', 'cards2/**', 'cards3/**', '.github/workflows/cards-lab.yml']
   workflow_dispatch:
 permissions:
   contents: write
@@ -47,12 +47,18 @@ jobs:
           O="$RUNNER_TEMP/out"; mkdir -p "$O/c2"; cp "$O/ca.crt" "$O/c2/"
           cd "$GITHUB_WORKSPACE"
           LAB_RECV="$O/recv.log" timeout 1300 python3 cards2/cards2lab.py chr.img ros-${{ matrix.ros }} "$O/c2"; echo "::notice title=cards2 exit::$?"
+      - name: Cards 3 (the panel's own scripts)
+        run: |
+          O="$RUNNER_TEMP/out"; mkdir -p "$O/c3"; cp "$O/ca.crt" "$O/c3/"
+          cd "$GITHUB_WORKSPACE"
+          LAB_RECV="$O/recv.log" timeout 1300 python3 cards3/cards3lab.py chr.img ros-${{ matrix.ros }} "$O/c3"; echo "::notice title=cards3 exit::$?"
       - name: Keep the result in a branch
         if: always()
         run: |
           b=cards-result-${{ matrix.ros }}
           cp "$RUNNER_TEMP/out/cards-result.json" /tmp/r.json || echo '{}' > /tmp/r.json
           cp "$RUNNER_TEMP/out/c2/cards-result.json" /tmp/r2.json || echo '{}' > /tmp/r2.json
+          cp "$RUNNER_TEMP/out/c3/cards-result.json" /tmp/r3.json || echo '{}' > /tmp/r3.json
           git config user.name lab; git config user.email lab@example.invalid
-          git checkout --orphan "$b"; git rm -rfq . ; cp /tmp/r.json cards-result.json; cp /tmp/r2.json cards2-result.json; git add cards-result.json cards2-result.json
+          git checkout --orphan "$b"; git rm -rfq . ; cp /tmp/r.json cards-result.json; cp /tmp/r2.json cards2-result.json; cp /tmp/r3.json cards3-result.json; git add cards-result.json cards2-result.json cards3-result.json
           git commit -qm "cards lab ${{ matrix.ros }}"; git push -qf origin "$b"
