@@ -4,10 +4,15 @@ on:
     branches: [main]
     paths: ['cards/**', 'cards2/**', 'cards3/**', '.github/workflows/cards-lab.yml']
   workflow_dispatch:
+    inputs:
+      job:
+        description: 'cards or images'
+        default: 'cards'
 permissions:
   contents: write
 jobs:
   cards:
+    if: github.event_name == 'push' || inputs.job == 'cards'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     strategy:
@@ -62,3 +67,26 @@ jobs:
           git config user.name lab; git config user.email lab@example.invalid
           git checkout --orphan "$b"; git rm -rfq . ; cp /tmp/r.json cards-result.json; cp /tmp/r2.json cards2-result.json; cp /tmp/r3.json cards3-result.json; git add cards-result.json cards2-result.json cards3-result.json
           git commit -qm "cards lab ${{ matrix.ros }}"; git push -qf origin "$b"
+  images:
+    if: inputs.job == 'images'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        ros: ['6.49.19', '7.16.2', '7.24.5']
+    steps:
+      - name: RouterOS image
+        run: |
+          v=${{ matrix.ros }}
+          for i in 1 2 3 4 5; do
+            for u in https://download.mikrotik.com/routeros/$v/chr-$v.img.zip https://cdn.mikrotik.com/routeros/$v/chr-$v.img.zip; do
+              rm -f chr.zip; curl -fSL --retry 3 --retry-delay 5 -o chr.zip "$u" && unzip -tq chr.zip && break 2; echo "download failed: $u"
+            done; sleep 15
+          done
+          mkdir img && mv chr.zip img/chr-$v.img.zip && sha256sum img/*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: chr-${{ matrix.ros }}
+          path: img/
+          retention-days: 3
