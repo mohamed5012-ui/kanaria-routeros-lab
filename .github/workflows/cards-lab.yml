@@ -90,3 +90,12 @@ jobs:
           cd img && git init -q && git config user.name lab && git config user.email lab@users.noreply.github.com
           git checkout -q -b img-${{ matrix.ros }} && git add . && git commit -qm "image ${{ matrix.ros }} (temporary)"
           git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" img-${{ matrix.ros }}
+  cleanup:
+    if: inputs.job == 'cleanup'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Remove the temporary image branches
+        run: |
+          for b in img-6.49.19 img-7.16.2 img-7.24.5; do
+            git push "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" --delete "$b" || true
+          done
