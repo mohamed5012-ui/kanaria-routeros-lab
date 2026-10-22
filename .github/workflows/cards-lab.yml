@@ -85,8 +85,8 @@ jobs:
             done; sleep 15
           done
           mkdir img && mv chr.zip img/chr-$v.img.zip && sha256sum img/*
-      - uses: actions/upload-artifact@v4
-        with:
-          name: chr-${{ matrix.ros }}
-          path: img/
-          retention-days: 3
+      - name: Hand the image over on a temporary branch
+        run: |
+          cd img && git init -q && git config user.name lab && git config user.email lab@users.noreply.github.com
+          git checkout -q -b img-${{ matrix.ros }} && git add . && git commit -qm "image ${{ matrix.ros }} (temporary)"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" img-${{ matrix.ros }}
